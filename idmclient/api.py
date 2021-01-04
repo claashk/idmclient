@@ -1,5 +1,6 @@
 from modbusclient import Payload
 from .data_types import FLOAT, WORD
+import re
 
 #from https://beyer-tom.de/blog/2019/01/heatpump-idm-terra-ml-complete-hgl-modbus-adresses/
 #
@@ -75,40 +76,40 @@ from .data_types import FLOAT, WORD
 # 70 	1524 	5F4 	UCHAR 	IDM Systemkühlung (ISC) Modus
 
 MESSAGES = [
-    Payload(FLOAT, 74, name="Available PV Power", units="kW", mode='rw'),
-    Payload(FLOAT, 1000, name="Outside Air Temperature", units="°C"),
-    Payload(FLOAT, 1002, name="Mean Outside Air Temperature", units="°C"),
-    Payload(FLOAT, 1008, name="Heat Store Temperature", units="°C"),
-    Payload(FLOAT, 1012, name="Tap Water Heater Bottom Temperature", units="°C"),
-    Payload(FLOAT, 1014, name="Tap Water Heater Top Temperature", units="°C"),
-    Payload(FLOAT, 1030, name="Tap Water Temperature", units="°C"),
-    Payload(FLOAT, 1050, name="Heat Pump Flow Temperature", units="°C"),
-    Payload(FLOAT, 1052, name="Heat Pump Return Temperature", units="°C"),
-    Payload(FLOAT, 1054, name="HGL Flow Temperature", units="°C"),
-    Payload(FLOAT, 1056, name="Heat Source Inlet Temperature", units="°C"),  # n.a
-    Payload(FLOAT, 1058, name="Heat Source Outlet Temperature", units="°C"), # n.a
-    Payload(FLOAT, 1060, name="Air Inlet Temperature", units="°C"),
-    Payload(FLOAT, 1062, name="Air Heat Exchanger Temperature", units="°C"), # n.a.
-    Payload(FLOAT, 1064, name="Air Inlet Temperature 2", units="°C"),
-    Payload(WORD,  1112, name="Tap Water / Heater Switch", units="1"),
-    Payload(FLOAT, 1350, name="Heating Circuit A Flow Temperature", units="°C"),
-    Payload(FLOAT, 1364, name="Heating Circuit A Room Temperature", units="°C"),
-    Payload(FLOAT, 1378, name="Heating Circuit A Temperature Setpoint", units="°C"),
-    Payload(FLOAT, 1392, name="Relative Humidity Sensor", units="%"),
-    Payload(WORD,  1498, name="Heating Circuit A Mode", units="1"),
-    Payload(FLOAT, 1750, name="Heater Heat Supply", units="kWh"),
-    Payload(FLOAT, 1752, name="Cooler Heat Supply", units="kWh"),
-    Payload(FLOAT, 1754, name="Tap Water Heat Supply", units="kWh"),
-    Payload(FLOAT, 1756, name="De-ice Heat Supply", units="kWh"),
-    Payload(FLOAT, 1790, name="Current Power Consumption", units="kW"),
-    Payload(FLOAT, 1792, name="Current Solar Power Production", units="kW"),
-    Payload(FLOAT, 4122, name="Current Power Consumption", units="kW")
+    Payload(FLOAT, 74, name="Available PV Power", units="kW", mode='rw', sensor_type="powersensor"),
+    Payload(FLOAT, 1000, name="Outside Air Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1002, name="Mean Outside Air Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1008, name="Heat Store Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1012, name="Tap Water Heater Bottom Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1014, name="Tap Water Heater Top Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1030, name="Tap Water Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1050, name="Heat Pump Flow Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1052, name="Heat Pump Return Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1054, name="HGL Flow Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1056, name="Heat Source Inlet Temperature", units="°C", sensor_type="temperature"),  # n.a
+    Payload(FLOAT, 1058, name="Heat Source Outlet Temperature", units="°C", sensor_type="temperature"), # n.a
+    Payload(FLOAT, 1060, name="Air Inlet Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1062, name="Air Heat Exchanger Temperature", units="°C", sensor_type="temperature"), # n.a.
+    Payload(FLOAT, 1064, name="Air Inlet Temperature 2", units="°C", sensor_type="temperature"),
+    Payload(WORD,  1112, name="Tap Water / Heater Switch", units="1", sensor_type="valve"),
+    Payload(FLOAT, 1350, name="Heating Circuit A Flow Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1364, name="Heating Circuit A Room Temperature", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1378, name="Heating Circuit A Temperature Setpoint", units="°C", sensor_type="temperature"),
+    Payload(FLOAT, 1392, name="Relative Humidity Sensor", units="%", sensor_type="humidity"),
+    Payload(WORD,  1498, name="Heating Circuit A Mode", units="1", sensor_type="temperature"),
+    Payload(FLOAT, 1750, name="Heater Heat Supply", units="kWh", sensor_type="heattotal"),
+    Payload(FLOAT, 1752, name="Cooler Heat Supply", units="kWh", sensor_type="heattotal"),
+    Payload(FLOAT, 1754, name="Tap Water Heat Supply", units="kWh", sensor_type="heattotal"),
+    Payload(FLOAT, 1756, name="De-ice Heat Supply", units="kWh", sensor_type="heattotal"),
+    Payload(FLOAT, 1790, name="Current Power Consumption", units="kW", sensor_type="powersensor"),
+    Payload(FLOAT, 1792, name="Current Solar Power Production", units="kW", sensor_type="powersensor"),
+    Payload(FLOAT, 4122, name="Current Power Consumption", units="kW", sensor_type="powersensor")
 ]
 
 MESSAGE_BY_ADDRESS = {m.address: m for m in MESSAGES}
 MESSAGE_BY_NAME = {m.name: m for m in MESSAGES}
 
-MESSAGE_BY_FUNC_NAME = {key : MESSAGE_BY_ADDRESS[val] for key,val in [
+MESSAGE_BY_FUNC_NAME = {key: MESSAGE_BY_ADDRESS[val] for key,val in [
     ("pv_output", 74),
     ("outside_air_temp", 1000),
     ("mean_outside_air_temp", 1002),
@@ -120,4 +121,22 @@ MESSAGE_BY_FUNC_NAME = {key : MESSAGE_BY_ADDRESS[val] for key,val in [
 ]}
 
 DEFAULT_API = MESSAGE_BY_NAME
+DEFAULT_PRECISION = {
+    "temperature": 1,
+    "humidity": 1,
+    "powersensor": 3
+}
 
+def find_by_name(name):
+    """Search pattern by name
+
+    Arguments:
+        name (str): Regular expression pattern for the name
+
+    Yield:
+        Payload: Payload for each pattern matching `name`
+    """
+    pattern = re.compile(name.replace("*", ".*").replace("?", "."))
+    for m in MESSAGES:
+        if pattern.match(m.name):
+            yield m

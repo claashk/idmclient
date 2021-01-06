@@ -59,8 +59,7 @@ class Controller(ComponentBase):
          The keyword arguments are defined in VzLoggerCodec and are extracted
          there from the MQTT messages sent by vzlogger.
          """
-        self.debug("2.8.0 update: reading={reading}, timestamp={timestamp}",
-                   reading=reading, timestamp=timestamp)
+        self.debug(f"2.8.0 update: reading={reading}, timestamp={timestamp}")
 
         p = self._power(reading, timestamp)
 
@@ -70,10 +69,12 @@ class Controller(ComponentBase):
 
         if p is not None:
             try:
-                pwr = await self._client.set(self._message, p)
-                self.info("Setting available PV power to {power} kW", power=pwr)
+                with self._client:
+                    pwr = await self._client.set(self._message, p)
+
+                self.info(f"Setting available PV power to {pwr} kW")
             except OSError as ex:
-                self.error("While setting PV power: {err}", err=str(ex))
+                self.error(f"While setting PV power: {ex}")
 
     async def _leave(self, session, reason):
         """Coroutine invoked on each leave by Autobahn"""

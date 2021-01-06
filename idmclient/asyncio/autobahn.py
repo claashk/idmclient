@@ -9,7 +9,24 @@ PV_MESSAGE = MESSAGE_BY_ADDRESS[74]
 
 
 class Controller(ComponentBase):
+    """Autobahn Component relaying current PV output to IDM heat pump
 
+    The controller derives from
+
+    Arguments:
+        client (:class:`modbusclient.asyncio.ApiWrapper`): API wrapper. Passed
+            verbatim to parent :class:`modbusclient.asyncio.ComponentBase`.
+        wamp_host (str): URL of Autobahn / WAMP router to connect to. Passed
+            verbatim to parent :class:`modbusclient.asyncio.ComponentBase`
+        wamp_realm (str): WAMP realm to connect to. Passed verbatim to
+            parent :class:`modbusclient.asyncio.ComponentBase`.
+        channel (str): Name of channel used to receive current PV output
+        message (Payload): Modbus message used to send PV information to
+            heat pump.
+        with_timestamp (bool): Indicates, whether PV messages contain a timestamp
+           or not. Passed verbatim to :class:`vzclient.asyncio.VzLoggerCodec`.
+           Defaults to ``False``.
+    """
     def __init__(self,
                  client,
                  wamp_host,
@@ -24,13 +41,12 @@ class Controller(ComponentBase):
         self._power = Power()
 
     async def _join(self, session, details):
-        """
+        """Coroutine invoked on each join by Autobahn
 
         Arguments:
             session (:class:`autobahn.wamp.protocol.ApplicationSession`):
                 Application session.
             details (dict): Dictionary with details.
-
         """
         await super()._join(session, details)
         codec = VzLoggerCodec(with_timestamp=self._with_timestamp)
@@ -60,11 +76,13 @@ class Controller(ComponentBase):
                 self.error("While setting PV power: {err}", err=str(ex))
 
     async def _leave(self, session, reason):
+        """Coroutine invoked on each leave by Autobahn"""
         self._client.disconnect()
         await super()._leave(session, reason)
 
 
 class Monitor(ComponentBase):
+    """This is just a stub that does nothing yet."""
 
     def __init__(self, client, wamp_host, wamp_realm):
         super().__init__(transports=wamp_host, realm=wamp_realm, client=client)

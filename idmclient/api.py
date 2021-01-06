@@ -1,5 +1,5 @@
 from modbusclient import Payload
-from .data_types import FLOAT, WORD
+from .data_types import FLOAT, WORD, I16
 import re
 
 #from https://beyer-tom.de/blog/2019/01/heatpump-idm-terra-ml-complete-hgl-modbus-adresses/
@@ -91,12 +91,14 @@ MESSAGES = [
     Payload(FLOAT, 1060, name="Air Inlet Temperature", units="°C", sensor_type="temperature"),
     Payload(FLOAT, 1062, name="Air Heat Exchanger Temperature", units="°C", sensor_type="temperature"), # n.a.
     Payload(FLOAT, 1064, name="Air Inlet Temperature 2", units="°C", sensor_type="temperature"),
+    Payload(WORD,  1090, name="Heat Pump Operating Mode", units="1", sensor_type="universalsensor"),
+    Payload(I16,   1104, name="Charging Pump Speed", units="%", sensor_type="valve"),
     Payload(WORD,  1112, name="Tap Water / Heater Switch", units="1", sensor_type="valve"),
     Payload(FLOAT, 1350, name="Heating Circuit A Flow Temperature", units="°C", sensor_type="temperature"),
     Payload(FLOAT, 1364, name="Heating Circuit A Room Temperature", units="°C", sensor_type="temperature"),
     Payload(FLOAT, 1378, name="Heating Circuit A Temperature Setpoint", units="°C", sensor_type="temperature"),
     Payload(FLOAT, 1392, name="Relative Humidity Sensor", units="%", sensor_type="humidity"),
-    Payload(WORD,  1498, name="Heating Circuit A Mode", units="1", sensor_type="temperature"),
+    Payload(WORD,  1498, name="Heating Circuit A Mode", units="1", sensor_type="universalsensor"),
     Payload(FLOAT, 1750, name="Heater Heat Supply", units="kWh", sensor_type="heattotal"),
     Payload(FLOAT, 1752, name="Cooler Heat Supply", units="kWh", sensor_type="heattotal"),
     Payload(FLOAT, 1754, name="Tap Water Heat Supply", units="kWh", sensor_type="heattotal"),
@@ -124,7 +126,8 @@ DEFAULT_API = MESSAGE_BY_NAME
 DEFAULT_PRECISION = {
     "temperature": 1,
     "humidity": 1,
-    "powersensor": 3
+    "powersensor": 3,
+    "valve": 0
 }
 
 def find_by_name(name):

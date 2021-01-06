@@ -69,10 +69,9 @@ class Controller(ComponentBase):
 
         if p is not None:
             try:
-                with self._client:
+                async with self._client:
                     pwr = await self._client.set(self._message, p)
-
-                self.info(f"Setting available PV power to {pwr} kW")
+                    self.info(f"Set available PV power to {pwr} kW")
             except OSError as ex:
                 self.error(f"While setting PV power: {ex}")
 

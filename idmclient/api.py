@@ -130,16 +130,3 @@ DEFAULT_PRECISION = {
     "valve": 0
 }
 
-def find_by_name(name):
-    """Search pattern by name
-
-    Arguments:
-        name (str): Regular expression pattern for the name
-
-    Yield:
-        Payload: Payload for each pattern matching `name`
-    """
-    pattern = re.compile(name.replace("*", ".*").replace("?", "."))
-    for m in MESSAGES:
-        if pattern.match(m.name):
-            yield m
